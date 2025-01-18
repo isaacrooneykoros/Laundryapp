@@ -1,12 +1,7 @@
-package com.example.cleanhomes111.ui.theme
+package com.ahmedapps.bankningappui.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val PrimaryColor = Color(0xFF1A4D2E)
-val SecondaryColor = Color(0xFF4F6F52)
-val BackgroundColor = Color(0xFFF5EFE6)
-val SurfaceColor = Color(0xFFE8DFCA)
-val TextColor = Color(0xFF000000)
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)

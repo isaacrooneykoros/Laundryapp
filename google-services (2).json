@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "479344291719",
+    "project_id": "cleanhomes11",
+    "storage_bucket": "cleanhomes11.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:479344291719:android:5d60801e1f03595cdb2d22",
+        "android_client_info": {
+          "package_name": "com.example.cleanhomes111"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqmrTfrjZ9vKkC8ODjO03geZxAXoN9Qdc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
