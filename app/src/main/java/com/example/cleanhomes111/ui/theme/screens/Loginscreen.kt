@@ -1,13 +1,12 @@
 package com.example.cleanhomes111.ui.theme.screens
 
+import android.util.Patterns
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -15,6 +14,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -42,6 +42,14 @@ import androidx.navigation.compose.rememberNavController
 import com.example.cleanhomes111.R
 import com.example.cleanhomes111.ui.theme.data.AuthViewModel
 import com.example.cleanhomes111.ui.theme.navigation.ROUT_SIGNUP
+
+fun isValidEmail(email: String): Boolean {
+    return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+}
+
+fun isValidPassword(password: String): Boolean {
+    return password.length >= 6
+}
 
 @Composable
 fun LoginScreen(navController: NavHostController){
@@ -121,28 +129,33 @@ fun LoginScreen(navController: NavHostController){
         val context = LocalContext.current
         val authViewModel = AuthViewModel(navController, context)
 
+        var isLoading by remember { mutableStateOf(false) }
 
-        Row {
-            Button(
-                onClick = { authViewModel.login(email, password) },
-                colors = ButtonDefaults.buttonColors(Color.DarkGray),
-                shape = RoundedCornerShape(5.dp)
-            ) {
+        Button(
+            onClick = {
+                isLoading = true
+                authViewModel.login(email, password) {
+                    isLoading = false
+                }
+            },
+            enabled = !isLoading
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(color = Color.White)
+            } else {
                 Text(text = "SignIn", fontFamily = FontFamily.SansSerif)
             }
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Button(
-                onClick = { authViewModel.adminlogin(email, password) },
-                colors = ButtonDefaults.buttonColors(Color.DarkGray),
-                shape = RoundedCornerShape(5.dp)
-            ) {
-                Text(text = "SignIn as Admin", fontFamily = FontFamily.SansSerif)
-            }
-
         }
 
+        Spacer(modifier = Modifier.height(10.dp))
 
+        Button(
+            onClick = { authViewModel.adminlogin(email, password) },
+            colors = ButtonDefaults.buttonColors(Color.DarkGray),
+            shape = RoundedCornerShape(5.dp)
+        ) {
+            Text(text = "SignIn as Admin", fontFamily = FontFamily.SansSerif)
+        }
 
         Button(
             onClick = { navController.navigate(ROUT_SIGNUP) },

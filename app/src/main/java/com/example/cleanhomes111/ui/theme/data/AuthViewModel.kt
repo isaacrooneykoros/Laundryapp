@@ -60,7 +60,7 @@ class AuthViewModel(private var navController: NavController, private var contex
 
     }
 
-    fun login(email: String, password: String){
+    fun login(email: String, password: String, function: () -> Unit){
 
         if (email.isBlank() || password.isBlank()){
             Toast.makeText(context,"Please email and password cannot be blank", Toast.LENGTH_LONG).show()

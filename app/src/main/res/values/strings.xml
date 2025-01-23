@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">CleanHomes111</string>
+    <string name="location_label">Location</string>
+    <string name="location_icon_description">Location Icon</string>
+    <string name="location_value">Nairobi, Kenya</string>
+    <string name="search_icon_description">Search Icon</string>
+    <string name="search_hint">Search</string>
+    <string name="filter_icon_description">Filter Icon</string>
+    <string name="special_for_you">Special For You</string>
+    <string name="see_all">See All</string>
+    <string name="special_offer_image_description">Special Offer</string>
+    <string name="categories">Categories</string>
+    <string name="dry_cleaning">Dry Cleaning</string>
+    <string name="shoe_cleaning">Shoe Cleaning</string>
+    <string name="wash_and_fold">Wash-and-fold</string>
+    <string name="delivery">Delivery</string>
+    <string name="popular_services">Popular Services</string>
+
 </resources>

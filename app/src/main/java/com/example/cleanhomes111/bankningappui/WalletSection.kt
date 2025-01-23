@@ -1,4 +1,4 @@
-package com.ahmedapps.bankningappui
+package com.example.cleanhomes111.bankningappui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +24,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+
+private lateinit var navController: NavController
 
 @Preview
 @Composable
@@ -36,7 +40,8 @@ fun WalletSection() {
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        Column {
+        Column(
+        ) {
             Text(
                 text = "Wallet",
                 fontSize = 17.sp,
@@ -61,7 +66,11 @@ fun WalletSection() {
             Icon(
                 imageVector = Icons.Rounded.Search,
                 contentDescription = "Search",
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.clickable {
+                    navController.navigate("payment")
+                }
+                
             )
         }
 

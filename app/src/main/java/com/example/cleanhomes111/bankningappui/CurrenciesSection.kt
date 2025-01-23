@@ -2,30 +2,14 @@ package com.example.cleanhomes111.bankningappui
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DryCleaning
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,59 +20,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ahmedapps.bankningappui.data.Clothing
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ahmedapps.bankningappui.ui.theme.GreenStart
-
-val Clothing= listOf(
-    Clothing(
-        name = "5 T-shirts",
-        buy = 23.35f,
-        sell = 23.25f,
-        icon = Icons.Rounded.DryCleaning
-    ),
-
-    Clothing(
-        name = "6 Trousers",
-        buy = 13.35f,
-        sell = 13.25f,
-        icon = Icons.Rounded.DryCleaning
-    ),
-
-    Clothing(
-        name = "2 Suites",
-        buy = 26.35f,
-        sell = 26.35f,
-        icon = Icons.Rounded.DryCleaning
-    ),
-
-    Clothing(
-        name = "5 shirts",
-        buy = 23.35f,
-        sell = 23.25f,
-        icon = Icons.Rounded.DryCleaning
-    ),
-
-    Clothing(
-        name = "8 shirts",
-        buy = 63.35f,
-        sell = 73.25f,
-        icon = Icons.Rounded.DryCleaning
-    ),
-
-    Clothing(
-        name = "10 trousers",
-        buy = 16.35f,
-        sell = 16.35f,
-        icon = Icons.Rounded.DryCleaning
-    ),
-)
 
 @Preview
 @Composable
-fun CurrenciesSection() {
+fun CurrenciesSection(viewModel: TransactionsViewModel = viewModel()) {
     val iconState by remember {
         mutableStateOf(Icons.Rounded.KeyboardArrowUp)
     }
+
+    val transactions by viewModel.transactions.collectAsState()
 
     Box(
         modifier = Modifier
@@ -112,15 +54,16 @@ fun CurrenciesSection() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Box(modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondary)
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondary)
 
                 ) {
                     Icon(
                         modifier = Modifier.size(25.dp),
                         imageVector = iconState,
-                        contentDescription = "Currencies",
+                        contentDescription = "Transactions",
                         tint = MaterialTheme.colorScheme.onSecondary
                     )
                 }
@@ -128,7 +71,7 @@ fun CurrenciesSection() {
                 Spacer(modifier = Modifier.width(20.dp))
 
                 Text(
-                    text = "Currencies",
+                    text = "Transactions",
                     fontSize = 20.sp,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     fontWeight = FontWeight.Bold
@@ -142,100 +85,59 @@ fun CurrenciesSection() {
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.secondaryContainer)
             )
-                BoxWithConstraints(
+
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+
+                val boxWithConstraintsScope = this
+                val width = boxWithConstraintsScope.maxWidth / 3
+
+                Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .padding(horizontal = 16.dp)
-                        .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
-                        .background(MaterialTheme.colorScheme.background)
                 ) {
 
-                    val boxWithConstraintsScope = this
-                    val width = boxWithConstraintsScope.maxWidth / 3
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                    ) {
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth()
+                    if (transactions.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-
                             Text(
-                                modifier = Modifier.width(width),
-                                text = "Currency",
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-
-
-                            Text(
-                                modifier = Modifier.width(width),
-                                text = "Buy",
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                textAlign = TextAlign.End
-                            )
-
-
-                            Text(
-                                modifier = Modifier.width(width),
-                                text = "Sell",
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                textAlign = TextAlign.End
-                            )
-
-                            Text(
-                                modifier = Modifier.width(width),
-                                text = "Buy",
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                textAlign = TextAlign.End
-                            )
-
-                            Text(
-                                modifier = Modifier.width(width),
-                                text = "Buy",
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                textAlign = TextAlign.End
+                                text = "No transactions yet.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                             )
                         }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
+                    } else {
                         LazyColumn {
-                            items(Clothing.size) { index ->
-                                CurrencyItem(
-                                    index = index,
+                            items(transactions.size) { index ->
+                                TransactionItem(
+                                    transaction = transactions[index],
                                     width = width
                                 )
                             }
                         }
-
                     }
+
                 }
             }
         }
 
     }
-
-
+}
 
 @Composable
-fun CurrencyItem(index: Int, width: Dp) {
-    val clothing = Clothing[index]
-
+fun TransactionItem(transaction: com.example.cleanhomes111.bankningappui.Transaction, width: Dp) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -255,8 +157,8 @@ fun CurrencyItem(index: Int, width: Dp) {
             ) {
                 Icon(
                     modifier = Modifier.size(18.dp),
-                    imageVector = clothing.icon,
-                    contentDescription = clothing.name,
+                    imageVector = transaction.icon,
+                    contentDescription = transaction.description,
                     tint = Color.White
                 )
             }
@@ -264,7 +166,7 @@ fun CurrencyItem(index: Int, width: Dp) {
             Text(
                 modifier = Modifier
                     .padding(start = 10.dp),
-                text = clothing.name,
+                text = transaction.description,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -275,10 +177,10 @@ fun CurrencyItem(index: Int, width: Dp) {
             modifier = Modifier
                 .width(width)
                 .padding(start = 10.dp),
-            text = "$ ${clothing.buy}",
+            text = "$ ${transaction.amount}",
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onBackground,
+            color = if (transaction.amount > 0) Color.Green else Color.Red,
             textAlign = TextAlign.End
         )
 
@@ -286,7 +188,7 @@ fun CurrencyItem(index: Int, width: Dp) {
             modifier = Modifier
                 .width(width)
                 .padding(start = 10.dp),
-            text = "$ ${clothing.sell}",
+            text = transaction.date,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onBackground,
@@ -295,20 +197,3 @@ fun CurrencyItem(index: Int, width: Dp) {
 
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

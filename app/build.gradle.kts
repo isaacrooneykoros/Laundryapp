@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.storage.ktx)
     implementation(libs.play.services.wallet)
+    implementation(libs.androidx.ui.test.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -85,6 +86,22 @@ dependencies {
 
     // system UI Controller
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
+
+    implementation ("androidx.navigation:navigation-compose:2.7.2") // Update to the latest
+
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
+
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+    implementation ("androidx.compose.runtime:runtime-livedata:1.4.3")
+    implementation ("androidx.compose.material3:material3:1.1.1") // or the latest version
+    implementation ("com.google.accompanist:accompanist-pager:0.28.0") // Use the latest version
+
+
+
+
+
+
 
 
 

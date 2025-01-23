@@ -1,6 +1,9 @@
-package com.example.cleanhomes111.ui.theme.screens
-
-
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Geocoder
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,76 +15,165 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material.icons.rounded.Wallet
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.cleanhomes111.bankningappui.data.BottomNavigation
+import androidx.core.content.ContextCompat
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.cleanhomes111.R
+import com.example.cleanhomes111.bankningappui.data.BottomNavigation
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import java.util.Locale
 
 @Composable
-fun HomeScreen() {
-    Column(modifier = Modifier
-        .fillMaxHeight()
-        .background(Color(0xFFF5F5F5))
-        .verticalScroll(rememberScrollState())
+fun HomeScreen(navController: NavHostController) {
+    val context = LocalContext.current
+    var location by remember { mutableStateOf("Fetching location...") }
+
+    // Request location permissions
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                startLocationUpdates(context) { fetchedLocation ->
+                    location = fetchedLocation
+                }
+            } else {
+                location = "Location permission denied"
+            }
+        }
     )
-    {
+
+    // Check for location permissions and start updates
+    LaunchedEffect(Unit) {
+        when {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                startLocationUpdates(context) { fetchedLocation ->
+                    location = fetchedLocation
+                }
+            }
+            else -> {
+                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
+    }
+
+    // Handle lifecycle events to stop location updates when the composable is disposed
+    DisposableEffect(Unit) {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                for (loc in locationResult.locations) {
+                    val address = getReadableAddress(context, loc.latitude, loc.longitude)
+                    location = address ?: "Location not available"
+                }
+            }
+        }
+
+        val locationRequest = LocationRequest.create().apply {
+            interval = 10000 // Update interval in milliseconds
+            fastestInterval = 5000 // Fastest update interval
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+        }
+
+        onDispose {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .background(Color(0xFFF5F5F5))
+            .verticalScroll(rememberScrollState())
+    ) {
         // Top Bar
-        TopBar()
+        TopBar(location)
 
         // Special For You Section
         Spacer(modifier = Modifier.height(25.dp))
-        SpecialForYouSection()
+        SpecialForYouSection(navController)
 
         // Categories Section
         Spacer(modifier = Modifier.height(16.dp))
-        CategoriesSection()
+        CategoriesSection(navController)
 
         // Popular Services Section
         Spacer(modifier = Modifier.height(16.dp))
-        PopularServicesSection()
-        Spacer(modifier = Modifier.height(20.dp))
+        PopularServicesSection(navController)
+
+        Spacer(modifier = Modifier.height(62.dp))
+
         // Bottom Navigation
-        BottomNavigationBar()
+        BottomNavigationBar(navController)
     }
 }
 
 @Composable
-fun TopBar() {
-    Box (
+fun TopBar(location: String) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF3BA785), shape = RoundedCornerShape(bottomEnd = 24.dp, bottomStart = 24.dp))
-            .padding(16.dp)
-            .size(200.dp )
+            .background(
+                Color.White,
+                shape = RoundedCornerShape(bottomEnd = 24.dp, bottomStart = 24.dp)
+            )
+            .paint(
+                painterResource(id = R.drawable.backgroundhomepage),
+                contentScale = ContentScale.Fit
+            )
+            .padding(10.dp)
+            .size(200.dp)
     ) {
         Column {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(40.dp))
+
             Text(
-                text = "Location",
+                text = stringResource(R.string.location_label),
                 style = TextStyle(color = Color.White, fontSize = 12.sp)
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painter = painterResource(id = R.drawable.img_2), // Replace with location icon
-                    contentDescription = "Location Icon",
-                    tint = Color.Yellow
+                    painter = painterResource(id = R.drawable.location),
+                    contentDescription = stringResource(R.string.location_icon_description),
+                    tint = Color.Yellow,
+                    modifier = Modifier.size(26.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "New York, USA",
+                    text = location,
                     style = TextStyle(color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 )
             }
@@ -91,8 +183,60 @@ fun TopBar() {
     }
 }
 
+// Function to start location updates
+private fun startLocationUpdates(context: Context, onLocationFetched: (String) -> Unit) {
+    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+    val locationRequest = LocationRequest.create().apply {
+        interval = 10000 // Update interval in milliseconds
+        fastestInterval = 5000 // Fastest update interval
+        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    }
+
+    val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            for (location in locationResult.locations) {
+                val address = getReadableAddress(context, location.latitude, location.longitude)
+                onLocationFetched(address ?: "Location not available")
+            }
+        }
+    }
+
+    if (ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    ) {
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+    }
+}
+
+// Function to convert latitude and longitude into a readable address
+private fun getReadableAddress(context: Context, latitude: Double, longitude: Double): String? {
+    val geocoder = Geocoder(context, Locale.getDefault())
+    return try {
+        val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+        if (addresses?.isNotEmpty() == true) {
+            val address = addresses[0]
+            // Extract the locality (city) and sub-locality (area) if available
+            val locality = address.locality ?: ""
+            val subLocality = address.subLocality ?: ""
+            if (locality.isNotEmpty() && subLocality.isNotEmpty()) {
+                "$subLocality, $locality" // e.g., "Karen, Nairobi"
+            } else {
+                address.getAddressLine(0) ?: "Unknown Location"
+            }
+        } else {
+            "Unknown Location"
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        "Failed to fetch address"
+    }
+}
+
 @Composable
 fun SearchBar() {
+    Spacer(modifier = Modifier.height(40.dp))
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -101,84 +245,86 @@ fun SearchBar() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.img_2), // Replace with search icon
-            contentDescription = "Search Icon",
-            tint = Color.Gray
+            painter = painterResource(id = R.drawable.search),
+            contentDescription = stringResource(R.string.search_icon_description),
+            tint = Color.Gray,
+            modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "Search",
+            text = stringResource(R.string.search_hint),
             style = TextStyle(color = Color.Gray, fontSize = 14.sp)
         )
         Spacer(modifier = Modifier.weight(1f))
         Icon(
-            painter = painterResource(id = R.drawable.img_2), // Replace with filter icon
-            contentDescription = "Filter Icon",
-            tint = Color.Gray
+            painter = painterResource(id = R.drawable.filter),
+            contentDescription = stringResource(R.string.filter_icon_description),
+            tint = Color.Gray,
+            modifier = Modifier.size(28.dp)
         )
     }
 }
 
 @Composable
-fun SpecialForYouSection() {
+fun SpecialForYouSection(navController: NavHostController) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "SpecialForYou",
+                text = stringResource(R.string.special_for_you),
                 style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "See All",
+                text = stringResource(R.string.see_all),
                 style = TextStyle(fontSize = 14.sp, color = Color(0xFF3BA785)),
                 modifier = Modifier.clickable {
-                    //route to login screen
-
+                    navController.navigate("specialForYouScreen")
                 }
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        // Carousel Placeholder
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(180.dp)
                 .background(Color.Gray, shape = RoundedCornerShape(16.dp))
-
         ) {
-            // Replace with Image from your resources
             Image(
-                painter = painterResource(id = R.drawable.img_2), // Replace with carousel image
-                contentDescription = "Special Offer",
+                painter = painterResource(id = R.drawable.img_4),
+                contentDescription = stringResource(R.string.special_offer_image_description),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp))
             )
-
         }
     }
 }
 
 @Composable
-fun CategoriesSection() {
+fun CategoriesSection(navController: NavHostController) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "Categories",
+                text = stringResource(R.string.categories),
                 style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "See All",
-                style = TextStyle(fontSize = 14.sp, color = Color(0xFF3BA785))
+                text = stringResource(R.string.see_all),
+                style = TextStyle(fontSize = 14.sp, color = Color(0xFF3BA785)),
+                modifier = Modifier.clickable {
+                    navController.navigate("categoriesScreen")
+                }
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        // Icons Row
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            CategoryItem(icon = R.drawable.img_2, title = "Cleaning")
-            CategoryItem(icon = R.drawable.img_2, title = "Repairing")
-            CategoryItem(icon = R.drawable.img_2, title = "Plumbing")
-            CategoryItem(icon = R.drawable.img_2, title = "Shifting")
+            CategoryItem(
+                icon = R.drawable.suitdrycleaning,
+                title = stringResource(R.string.dry_cleaning)
+            )
+            CategoryItem(icon = R.drawable.polish, title = stringResource(R.string.shoe_cleaning))
+            CategoryItem(icon = R.drawable.laundrybasket, title = stringResource(R.string.wash_and_fold))
+            CategoryItem(icon = R.drawable.deliverytruck, title = stringResource(R.string.delivery))
         }
     }
 }
@@ -194,8 +340,8 @@ fun CategoryItem(icon: Int, title: String) {
         ) {
             Icon(
                 painter = painterResource(id = icon),
-                contentDescription = "$title Icon",
-                tint = Color(0xFF3BA785)
+                contentDescription = title,
+                tint = Color.Unspecified
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -207,31 +353,86 @@ fun CategoryItem(icon: Int, title: String) {
 }
 
 @Composable
-fun PopularServicesSection() {
+fun PopularServicesSection(navController: NavHostController) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "Popular Services",
+                text = stringResource(R.string.popular_services),
                 style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "See All",
-                style = TextStyle(fontSize = 14.sp, color = Color(0xFF3BA785))
+                text = stringResource(R.string.see_all),
+                style = TextStyle(fontSize = 14.sp, color = Color(0xFF3BA785)),
+                modifier = Modifier.clickable {
+                    navController.navigate("popularServicesScreen")
+                }
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        // Replace with real data
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(
                 modifier = Modifier
                     .size(140.dp, 100.dp)
-                    .background(Color.Gray, shape = RoundedCornerShape(16.dp))
+                    .paint(
+                        painterResource(id = R.drawable.laundryadvert),
+                        contentScale = ContentScale.FillBounds
+                    )
             )
             Box(
                 modifier = Modifier
                     .size(140.dp, 100.dp)
-                    .background(Color.Gray, shape = RoundedCornerShape(16.dp))
+                    .paint(
+                        painterResource(id = R.drawable.washandfold),
+                        contentScale = ContentScale.FillBounds
+                    )
+            )
+        }
+    }
+}
+
+@Composable
+fun BottomNavigationBar(navController: NavController.Companion) {
+    // State to track the selected item
+    val selectedItem = remember { mutableIntStateOf(0) }
+
+    NavigationBar {
+        items.forEachIndexed { index, item ->
+            NavigationBarItem(
+                selected = selectedItem.intValue == index,
+                onClick = {
+                    // Update the selected item
+                    selectedItem.intValue = index
+
+                    // Handle navigation
+                    when (index) {
+                        0 -> navController.navigate("home")
+                        1 -> navController.navigate("wallet")
+                        2 -> navController.navigate("cart")
+                        3 -> navController.navigate("accountScreen")
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.title,
+                        tint = if (selectedItem.intValue == index) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onBackground
+                        }
+                    )
+                },
+                label = {
+                    Text(
+                        text = item.title,
+                        color = if (selectedItem.value == index) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onBackground
+                        }
+                    )
+                }
             )
         }
     }
@@ -242,17 +443,14 @@ val items = listOf(
         title = "Home",
         icon = Icons.Rounded.Home
     ),
-
     BottomNavigation(
         title = "Wallet",
         icon = Icons.Rounded.Wallet
     ),
-
     BottomNavigation(
-        title = "Notifications",
-        icon = Icons.Rounded.Notifications
+        title = "Cart",
+        icon = Icons.Rounded.ShoppingCart
     ),
-
     BottomNavigation(
         title = "Account",
         icon = Icons.Rounded.AccountCircle
@@ -260,61 +458,8 @@ val items = listOf(
 )
 
 @Composable
-fun BottomNavigationBar() {
-    NavigationBar {
-        Row(
-            modifier = Modifier.background(MaterialTheme.colorScheme.inverseOnSurface)
-        ) {
-
-            items.forEachIndexed { index, item ->
-                NavigationBarItem(
-                    selected = index == 0,
-                    onClick = {},
-                    icon = {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = item.title,
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = item.title,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                )
-            }
-
-        }
-    }
+@Preview()
+fun HomeScreenPreview() {
+    val navController = rememberNavController()
+    HomeScreen(navController = navController)
 }
-
-
-
-
-
-@Composable
-private fun DrawerHeader() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "Other")
-    }
-}
-
-
-
-
-
-@Composable
-@Preview(showBackground = true , showSystemUi = true)
-fun HomeScreenPreview(){
-
-    HomeScreen()
-
-}
-
