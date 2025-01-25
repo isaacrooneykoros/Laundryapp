@@ -50,8 +50,8 @@ fun BankningAppUITheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> com.example.cleanhomes111.ui.theme.DarkColorScheme
+        else -> com.example.cleanhomes111.ui.theme.LightColorScheme
     }
     val view = LocalView.current
     if (!view.isInEditMode) {
